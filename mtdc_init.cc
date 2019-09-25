@@ -59,23 +59,30 @@ int main() {
       VME.mvmeInit (MTDC, &cvm); // initialize the Mesytec modules for VM USB interface
       VME.mvmeInit (MQDC, &cvm);
       
-      VME.vmUSBInit (&cvm);
+      VME.vmUSBInit (&cvm); // start the VM USB
       
       bool data_search = false;
-      int data_count = 0;
+      int data_count = 0, cycles=100;
       
       while (!data_search) {
 	  data_buffer = VME.pollBuffer (&cvm, MQDC);
 	  if (data_buffer > 0) {
 	    printf("Found Data...");
-	    //VME.testMask(MQDC, &cvm, testList);
-	    cvm.vmeRead32(MQDC, ADDR_R, &r_data);
+	    while (data_buffer >0 ) {
+	    cvm.vmeRead32(MQDC, ADDR_R, &r_data); // read out data from base address
 	    printf("\nData collected:\t\t0x%0x\n",r_data);
 	    printf("Module ID:\t0x%0x\n", ((r_data&0x00FF0000) / 0x10000));
 	    data_count ++;
-	    if (data_count == 4) data_search = true;
+	    if (data_count == 64) data_search = true;
+	    data_buffer = VME.pollBuffer (&cvm, MQDC);
+	  }
 	  }
 	  usleep(100000);
+	  cycles--;
+	  if (cycles==0) {
+	    printf("Acquisition complete...\n");
+	    data_search=true;
+	  }
 	}
 
 	VME.daqStop (&cvm);

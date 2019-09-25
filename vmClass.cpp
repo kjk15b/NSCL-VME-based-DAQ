@@ -203,6 +203,8 @@ vme::vmUSBInit (CVMUSBusb* cvm) {
     r_data = cvm->readRegister(0x28);
     printf("\n--------------------\nVector Zero: %02x\n--------------------\n", r_data);
     printf("\n--------------------\nFinished initializing VM-USB\n--------------------\n");
+    
+    vme::registerDump(cvm);
     return 0;
 }
 
@@ -214,10 +216,10 @@ vme::vmUSBInit (CVMUSBusb* cvm) {
  */
 int
 vme::mvmeInit (uint32_t module_addr, CVMUSBusb* cvm) {
-    static uint16_t reg[3] = {/*irq_level, irq_vector, IRQ_source, irq_event_threshold,*/ marking_type, multi_event, Max_transfer_data/*, cblt_mcst_control, cblt_address*/};
-    static uint16_t reg_data[3] = {/*1, 0, 0, 1,*/ 0x1, 0x0, 0, /*0x80, 0xBB*/};
+    static uint16_t reg[9] = {irq_level, irq_vector, IRQ_source, irq_event_threshold, marking_type, multi_event, Max_transfer_data, cblt_mcst_control, cblt_address};
+    static uint16_t reg_data[9] = {1, 0, 0, 1, 0x1, 0x0, 0, 0x80, 0xBB};
     printf("\n--------------------\nStarting VME Interfacing\n--------------------\n");
-    for (int i=0;i<3;++i) {
+    for (int i=0;i<9;++i) {
       cvm->vmeWrite16(module_addr|reg[i], ADDR_W, reg_data[i]); 
       printf(".\t");
       usleep(200);
@@ -419,11 +421,11 @@ vme::pollBuffer (CVMUSBusb* cvm, uint32_t module_addr) {
 int 
 vme::registerDump (CVMUSBusb* cvm) {
   printf("\n--------------------\nDumping Core Registers\n--------------------\n");
-  unsigned int reg[10]={gmodeReg, daqReg, ledReg, usrDevReg, ddgAReg, ddgBReg, ddgExtReg, eventBuffReg, ISVReg, USBReg};
+  unsigned int reg[11]={0, gmodeReg, daqReg, ledReg, usrDevReg, ddgAReg, ddgBReg, ddgExtReg, eventBuffReg, ISVReg, USBReg};
   uint32_t r_data=0;
-  for (int i=0;i<10;++i) {
+  for (int i=0;i<11;i++) {
     r_data = cvm->readRegister(reg[i]);
-    printf("Register: %20x\t\tData: %20x\n", reg[i], r_data);
+    printf("Register: %d\t\tData: %20x\n", reg[i], r_data);
   }
 }
 
